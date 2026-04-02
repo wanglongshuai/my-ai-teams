@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Teams IM</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- 顶部导航 -->
+  <header class="header">
+    <div class="header-left">
+      <span class="logo">🤖 AI Teams IM</span>
+    </div>
+    <nav class="header-nav">
+      <button class="nav-btn active" data-view="chat" onclick="switchView('chat')">💬 聊天</button>
+      <button class="nav-btn" data-view="org" onclick="switchView('org')">🏢 组织架构</button>
+    </nav>
+    <div class="header-right">
+      <span class="status-dot"></span>
+      <span id="status-text">连接中...</span>
+    </div>
+  </header>
+
+  <!-- 聊天视图 -->
+  <div id="view-chat" class="view active">
+    <div class="chat-layout">
+      <!-- 左侧：群组列表 -->
+      <aside class="sidebar">
+        <div class="sidebar-section">
+          <div class="section-header">
+            <span>团队群</span>
+          </div>
+          <div id="group-list-team" class="group-list"></div>
+        </div>
+        <div class="sidebar-section">
+          <div class="section-header">
+            <span>管理层群</span>
+          </div>
+          <div id="group-list-management" class="group-list"></div>
+        </div>
+        <div class="sidebar-section">
+          <div class="section-header">
+            <span>单聊</span>
+          </div>
+          <div id="group-list-direct" class="group-list"></div>
+        </div>
+        <div class="sidebar-section">
+          <div class="section-header">
+            <span>自定义群</span>
+            <button class="btn-new-group" onclick="openNewGroupModal()" title="新建群聊">＋</button>
+          </div>
+          <div id="group-list-custom" class="group-list"></div>
+        </div>
+      </aside>
+
+      <!-- 中间：聊天区域 -->
+      <main class="chat-main">
+        <div id="chat-empty" class="chat-empty">
+          <div class="empty-icon">💬</div>
+          <p>选择一个群组或成员开始对话</p>
+        </div>
+        <div id="chat-panel" class="chat-panel hidden">
+          <div class="chat-header">
+            <div class="chat-header-info">
+              <span id="chat-title" class="chat-title"></span>
+              <span id="chat-subtitle" class="chat-subtitle"></span>
+            </div>
+            <div id="chat-responder-select" class="responder-select hidden">
+              <label>回复者：</label>
+              <select id="responder-select" onchange="setResponder(this.value)">
+                <option value="">自动（Leader）</option>
+              </select>
+            </div>
+          </div>
+          <div id="messages" class="messages"></div>
+          <div id="typing-indicator" class="typing-indicator hidden">
+            <span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>
+            <span id="typing-name"></span> 正在输入...
+          </div>
+          <div class="input-area">
+            <textarea id="msg-input" placeholder="输入消息，Enter 发送，Shift+Enter 换行" rows="2"
+              onkeydown="handleInputKey(event)"></textarea>
+            <button class="send-btn" onclick="sendMessage()">发送</button>
+          </div>
+        </div>
+      </main>
+
+      <!-- 右侧：成员/群组信息 -->
+      <aside class="info-panel">
+        <div id="info-empty" class="info-empty">
+          <p>选择群组查看详情</p>
+        </div>
+        <div id="info-content" class="hidden">
+          <div id="info-header"></div>
+          <div id="info-members"></div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <!-- 组织架构视图 -->
+  <div id="view-org" class="view hidden">
+    <div class="org-container">
+      <h2 class="org-title">组织架构</h2>
+      <div class="org-teams" id="org-teams"></div>
+    </div>
+  </div>
+
+  <!-- 新建群聊 Modal -->
+  <div id="modal-new-group" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>新建群聊</h3>
+        <button class="modal-close" onclick="closeNewGroupModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="text" id="new-group-name" placeholder="群聊名称" class="modal-input">
+        <p class="modal-label">选择成员：</p>
+        <div id="member-checkboxes" class="member-checkboxes"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" onclick="closeNewGroupModal()">取消</button>
+        <button class="btn-confirm" onclick="createGroup()">创建</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 成员资料 Modal -->
+  <div id="modal-profile" class="modal hidden">
+    <div class="modal-content modal-profile-content">
+      <div class="modal-header">
+        <h3 id="profile-name"></h3>
+        <button class="modal-close" onclick="closeProfileModal()">✕</button>
+      </div>
+      <div class="modal-body" id="profile-body"></div>
+    </div>
+  </div>
+
+  <script src="lib/marked.min.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
