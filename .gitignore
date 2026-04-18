@@ -2,3 +2,7 @@
 # Chat app
 config.json
 data/chat.db
+chat.db
+chat-app/chat.db
+chat-app/__pycache__/
+__pycache__/

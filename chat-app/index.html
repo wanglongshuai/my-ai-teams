@@ -14,6 +14,10 @@
     </div>
     <nav class="header-nav">
       <button class="nav-btn active" data-view="chat" onclick="switchView('chat')">💬 聊天</button>
+      <button class="nav-btn" data-view="tasks" onclick="switchView('tasks')">
+        📋 任务
+        <span id="task-running-badge" class="task-running-badge hidden">0</span>
+      </button>
       <button class="nav-btn" data-view="org" onclick="switchView('org')">🏢 组织架构</button>
     </nav>
     <div class="header-right">
@@ -23,26 +27,20 @@
   </header>
 
   <!-- 聊天视图 -->
-  <div id="view-chat" class="view active">
+  <div id="view-chat" class="view">
     <div class="chat-layout">
       <!-- 左侧：群组列表 -->
       <aside class="sidebar">
         <div class="sidebar-section">
-          <div class="section-header">
-            <span>团队群</span>
-          </div>
+          <div class="section-header"><span>团队群</span></div>
           <div id="group-list-team" class="group-list"></div>
         </div>
         <div class="sidebar-section">
-          <div class="section-header">
-            <span>管理层群</span>
-          </div>
+          <div class="section-header"><span>管理层群</span></div>
           <div id="group-list-management" class="group-list"></div>
         </div>
         <div class="sidebar-section">
-          <div class="section-header">
-            <span>单聊</span>
-          </div>
+          <div class="section-header"><span>单聊</span></div>
           <div id="group-list-direct" class="group-list"></div>
         </div>
         <div class="sidebar-section">
@@ -57,8 +55,23 @@
       <!-- 中间：聊天区域 -->
       <main class="chat-main">
         <div id="chat-empty" class="chat-empty">
-          <div class="empty-icon">💬</div>
-          <p>选择一个群组或成员开始对话</p>
+          <div class="empty-illustration">
+            <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="60" cy="60" r="60" fill="#f0f5ff"/>
+              <rect x="24" y="38" width="72" height="44" rx="10" fill="#d6e4ff"/>
+              <rect x="32" y="46" width="40" height="8" rx="4" fill="#adc6ff"/>
+              <rect x="32" y="60" width="28" height="8" rx="4" fill="#adc6ff"/>
+              <circle cx="84" cy="72" r="16" fill="#1677ff"/>
+              <text x="84" y="77" text-anchor="middle" font-size="16" fill="white">💬</text>
+            </svg>
+          </div>
+          <div class="empty-title">选择一个对话开始聊天</div>
+          <div class="empty-desc">从左侧选择团队群、单聊或自定义群，<br>与 AI 团队成员实时协作</div>
+          <div class="empty-hints">
+            <span class="empty-hint-tag">💡 输入 @ 提及成员</span>
+            <span class="empty-hint-tag">↩ 引用消息回复</span>
+            <span class="empty-hint-tag">📋 任务看板追踪进度</span>
+          </div>
         </div>
         <div id="chat-panel" class="chat-panel hidden">
           <div class="chat-header">
@@ -66,11 +79,17 @@
               <span id="chat-title" class="chat-title"></span>
               <span id="chat-subtitle" class="chat-subtitle"></span>
             </div>
-            <div id="chat-responder-select" class="responder-select hidden">
-              <label>回复者：</label>
-              <select id="responder-select" onchange="setResponder(this.value)">
-                <option value="">自动（Leader）</option>
-              </select>
+            <div class="chat-header-right">
+              <div id="chat-responder-select" class="responder-select hidden">
+                <label>回复者：</label>
+                <select id="responder-select" onchange="setResponder(this.value)">
+                  <option value="">自动（Leader）</option>
+                </select>
+              </div>
+              <div id="task-indicator" class="task-indicator hidden">
+                <span class="task-indicator-dot"></span>
+                <span id="task-indicator-text">任务进行中</span>
+              </div>
             </div>
           </div>
           <div id="messages" class="messages"></div>
@@ -78,10 +97,32 @@
             <span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>
             <span id="typing-name"></span> 正在输入...
           </div>
+          <div id="inline-terminal" class="inline-terminal hidden">
+            <div class="inline-terminal-header">
+              <span class="term-dots"><span></span><span></span><span></span></span>
+              <span id="inline-terminal-title" class="term-title">正在处理...</span>
+              <button onclick="toggleInlineTerminal()" class="term-toggle">收起</button>
+            </div>
+            <div id="inline-terminal-body" class="inline-terminal-body"></div>
+          </div>
+          <div id="reply-preview" class="reply-preview hidden">
+            <span id="reply-preview-text"></span>
+            <button onclick="clearReply()" style="border:none;background:none;cursor:pointer;color:#999;font-size:16px;">×</button>
+          </div>
           <div class="input-area">
-            <textarea id="msg-input" placeholder="输入消息，Enter 发送，Shift+Enter 换行" rows="2"
-              onkeydown="handleInputKey(event)"></textarea>
-            <button class="send-btn" onclick="sendMessage()">发送</button>
+            <div class="input-toolbar">
+              <button class="toolbar-btn" title="表情" onclick="void 0">😊</button>
+              <button class="toolbar-btn" title="图片" onclick="void 0">🖼️</button>
+              <button class="toolbar-btn" title="文件" onclick="void 0">📎</button>
+              <div class="toolbar-divider"></div>
+              <button class="toolbar-btn" title="加粗" onclick="void 0"><b>B</b></button>
+              <button class="toolbar-btn" title="代码块" onclick="void 0" style="font-family:monospace;font-size:13px">`</button>
+            </div>
+            <div class="input-bottom">
+              <textarea id="msg-input" placeholder="输入消息，@ 提及成员，Enter 发送" rows="2"
+                onkeydown="handleInputKey(event)"></textarea>
+              <button class="send-btn" onclick="sendMessage()">发送</button>
+            </div>
           </div>
         </div>
       </main>
@@ -96,6 +137,51 @@
           <div id="info-members"></div>
         </div>
       </aside>
+    </div>
+  </div>
+
+  <!-- 任务看板视图 -->
+  <div id="view-tasks" class="view hidden">
+    <div class="task-board-layout">
+      <!-- 左侧：任务列表 -->
+      <div class="task-list-panel">
+        <div class="task-list-header">
+          <h2 class="task-board-title">任务看板</h2>
+          <div class="task-filters">
+            <button class="filter-btn active" data-status="all" onclick="filterTasks('all', this)">全部</button>
+            <button class="filter-btn" data-status="running" onclick="filterTasks('running', this)">进行中</button>
+            <button class="filter-btn" data-status="completed" onclick="filterTasks('completed', this)">已完成</button>
+            <button class="filter-btn" data-status="failed" onclick="filterTasks('failed', this)">失败</button>
+          </div>
+        </div>
+        <div id="task-list" class="task-list">
+          <div class="task-list-empty">暂无任务，在团队群中给 Leader 发消息即可创建任务</div>
+        </div>
+      </div>
+      <!-- 右侧：任务详情 + 执行日志 -->
+      <div class="task-detail-panel">
+        <div id="task-detail-empty" class="task-detail-empty">
+          <div class="empty-icon">📋</div>
+          <p>点击左侧任务查看详情</p>
+        </div>
+        <div id="task-detail-content" class="hidden"></div>
+      </div>
+      <!-- 最右侧：终端执行日志 -->
+      <div class="task-terminal-panel" id="task-terminal-panel">
+        <div class="terminal-header">
+          <span class="terminal-title">
+            <span class="terminal-dot red"></span>
+            <span class="terminal-dot yellow"></span>
+            <span class="terminal-dot green"></span>
+            执行日志
+          </span>
+          <span id="terminal-member-label" class="terminal-member-label"></span>
+          <button class="terminal-clear-btn" onclick="clearTerminal()">清空</button>
+        </div>
+        <div class="terminal-body" id="terminal-body">
+          <div class="terminal-placeholder">← 点击步骤查看实时执行过程</div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -137,6 +223,7 @@
     </div>
   </div>
 
+  <div id="mention-dropdown" class="mention-dropdown hidden"></div>
   <script src="lib/marked.min.js"></script>
   <script src="js/app.js"></script>
 </body>
